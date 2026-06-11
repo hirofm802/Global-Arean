@@ -291,12 +291,16 @@ const LIVE_BEFORE=1, LIVE_AFTER=47;
 
 let currentPage='day1';
 let tickerMessages = [];
+let _lastDay1Done = false;
 
 function switchPage(page){
   currentPage=page;
   document.querySelectorAll('.page-tab').forEach(t=>t.classList.toggle('active', t.dataset.page===page));
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+page));
-  if(page==='day2') renderDay2();
+  if(page==='day2'){
+    _lastDay1Done=isDay1Complete();
+    renderDay2();
+  }
 }
 
 function getJST(){
@@ -497,12 +501,12 @@ function renderMatchCard(m, dateObj, displayHome, displayAway){
   [ih,ia].forEach(inp=>{
     inp.addEventListener('input',()=>{
       setScore(m.id, ih.value, ia.value);
-      renderAll();
+      updateStandingsOnly();
     });
     inp.addEventListener('change',()=>{
       setScore(m.id, ih.value, ia.value);
       saveScores();
-      renderAll();
+      updateStandingsOnly();
     });
   });
   return card;
@@ -619,35 +623,84 @@ function getPlaceholderTeams(potRankIdx){
   return PLACEHOLDER_LABELS.map(g=>g+ordinal);
 }
 
-function renderDay2(){
-  const container=document.getElementById('day2-groups');
-  const note=document.getElementById('day2-status-note');
-  container.innerHTML='';
-
+function getDay2State(){
   const day1Done=isDay1Complete();
   let pots, day2Matches;
   if(day1Done){
-    note.style.display='none';
     pots=getDay2Pots();
     day2Matches=getDay2Matches(pots);
   } else {
-    note.style.display='block';
-    note.textContent='現在は1日目進行中です。組み合わせは仮表示（◯グループ◯位）です。1日目の全試合が終了すると、実際のチーム名に自動的に切り替わります。';
     pots={
       G1:getPlaceholderTeams(0),
       G2:getPlaceholderTeams(1),
       G3:getPlaceholderTeams(2),
       G4:getPlaceholderTeams(3),
     };
-    // Build placeholder match list with same structure but no scores possible
     day2Matches=DAY2_TEMPLATE.map(m=>({
       ...m,
       home: pots[m.group][m.homeIdx],
       away: pots[m.group][m.awayIdx],
     }));
   }
+  return {day1Done, pots, day2Matches};
+}
 
+function updateDay2StandingsAndOverall(){
+  const {day1Done, pots, day2Matches}=getDay2State();
   const groupResults={};
+  ['G1','G2','G3','G4'].forEach(g=>{
+    const teams=pots[g];
+    const groupMatches=day2Matches.filter(m=>m.group===g);
+    const {sorted, notes}=calcGroupStandings(teams, day1Done?groupMatches:[]);
+    if(document.getElementById('standings-'+g)){
+      renderStandingsTable(sorted, notes, 'standings-'+g, 'notes-'+g);
+    }
+    groupResults[g]=sorted;
+  });
+
+  const overallBody=document.getElementById('overall-body');
+  if(!overallBody) return;
+  overallBody.innerHTML='';
+  ['G1','G2','G3','G4'].forEach(g=>{
+    const offset=DAY2_GROUP_RANK_OFFSET[g];
+    groupResults[g].forEach((r,idx)=>{
+      const overallRank=offset+idx+1;
+      const rc=overallRank===1?'r1':overallRank===2?'r2':overallRank===3?'r3':'r-other';
+      const tr=document.createElement('tr');
+      const tdR=document.createElement('td'); tdR.className='rank-cell';
+      const rb=document.createElement('span'); rb.className='rank-badge '+rc; rb.textContent=overallRank; tdR.appendChild(rb);
+      const tdT=document.createElement('td'); tdT.className='col-team';
+      const inn=document.createElement('div'); inn.className='team-cell-inner';
+      inn.appendChild(makeLogoEl(r.name,'sm'));
+      const ns=document.createElement('span'); ns.className='team-name-cell'; ns.textContent=r.name;
+      inn.appendChild(ns);
+      tdT.appendChild(inn);
+      tr.append(tdR,tdT);
+      const tdG=document.createElement('td'); tdG.textContent=DAY2_GROUP_LABELS[g].slice(0,5);
+      tr.appendChild(tdG);
+      const tdP=document.createElement('td'); tdP.className='pts-cell'; tdP.textContent=r.pts;
+      tr.appendChild(tdP);
+      const tdGD=document.createElement('td'); tdGD.className=(r.gd>0?'gd-pos':r.gd<0?'gd-neg':'')+' hide-sp';
+      tdGD.textContent=(r.gd>=0?'+':'')+r.gd;
+      tr.appendChild(tdGD);
+      overallBody.appendChild(tr);
+    });
+  });
+}
+
+function renderDay2(){
+  const container=document.getElementById('day2-groups');
+  const note=document.getElementById('day2-status-note');
+  container.innerHTML='';
+
+  const {day1Done, pots, day2Matches}=getDay2State();
+
+  if(day1Done){
+    note.style.display='none';
+  } else {
+    note.style.display='block';
+    note.textContent='現在は1日目進行中です。組み合わせは仮表示（◯グループ◯位）です。1日目の全試合が終了すると、実際のチーム名に自動的に切り替わります。';
+  }
 
   ['G1','G2','G3','G4'].forEach(g=>{
     const teams=pots[g];
@@ -691,40 +744,9 @@ function renderDay2(){
 
     const notesDiv=document.createElement('div'); notesDiv.id='notes-'+g; notesDiv.className='tb-notes';
     container.appendChild(notesDiv);
-
-    const {sorted, notes}=calcGroupStandings(teams, day1Done?groupMatches:[]);
-    renderStandingsTable(sorted, notes, 'standings-'+g, 'notes-'+g);
-    groupResults[g]=sorted;
   });
 
-  // Overall ranking 1-12
-  const overallBody=document.getElementById('overall-body');
-  overallBody.innerHTML='';
-  ['G1','G2','G3','G4'].forEach(g=>{
-    const offset=DAY2_GROUP_RANK_OFFSET[g];
-    groupResults[g].forEach((r,idx)=>{
-      const overallRank=offset+idx+1;
-      const rc=overallRank===1?'r1':overallRank===2?'r2':overallRank===3?'r3':'r-other';
-      const tr=document.createElement('tr');
-      const tdR=document.createElement('td'); tdR.className='rank-cell';
-      const rb=document.createElement('span'); rb.className='rank-badge '+rc; rb.textContent=overallRank; tdR.appendChild(rb);
-      const tdT=document.createElement('td'); tdT.className='col-team';
-      const inn=document.createElement('div'); inn.className='team-cell-inner';
-      inn.appendChild(makeLogoEl(r.name,'sm'));
-      const ns=document.createElement('span'); ns.className='team-name-cell'; ns.textContent=r.name;
-      inn.appendChild(ns);
-      tdT.appendChild(inn);
-      tr.append(tdR,tdT);
-      const tdG=document.createElement('td'); tdG.textContent=DAY2_GROUP_LABELS[g].slice(0,5);
-      tr.appendChild(tdG);
-      const tdP=document.createElement('td'); tdP.className='pts-cell'; tdP.textContent=r.pts;
-      tr.appendChild(tdP);
-      const tdGD=document.createElement('td'); tdGD.className=(r.gd>0?'gd-pos':r.gd<0?'gd-neg':'')+' hide-sp';
-      tdGD.textContent=(r.gd>=0?'+':'')+r.gd;
-      tr.appendChild(tdGD);
-      overallBody.appendChild(tr);
-    });
-  });
+  updateDay2StandingsAndOverall();
 }
 
 // ── Ticker ───────────────────────────────────────────────────────────────────
@@ -789,6 +811,28 @@ function addTickerMessage(){
   input.value='';
   saveTicker();
   renderAll();
+}
+
+// ── Lightweight update: recompute standings tables without rebuilding match cards ──
+function updateStandingsOnly(){
+  ['A','B','C'].forEach(g=>{
+    const groupMatches=DAY1_MATCHES.filter(m=>m.group===g);
+    const {sorted, notes}=calcGroupStandings(DAY1_GROUPS[g], groupMatches);
+    if(document.getElementById('standings-'+g)){
+      renderStandingsTable(sorted, notes, 'standings-'+g, 'notes-'+g);
+    }
+  });
+  if(currentPage==='day2'){
+    const day1Done=isDay1Complete();
+    if(day1Done!==_lastDay1Done){
+      _lastDay1Done=day1Done;
+      renderDay2();
+    } else {
+      updateDay2StandingsAndOverall();
+    }
+  }
+  renderTicker();
+  renderTickerList();
 }
 
 // ── Lock / unlock ───────────────────────────────────────────────────────────
@@ -865,6 +909,7 @@ async function init(){
   document.getElementById('ticker-input').disabled=true;
   await loadScores();
   await loadTicker();
+  _lastDay1Done=isDay1Complete();
   renderAll();
   startPolling();
   setInterval(refreshLive, 30000);
