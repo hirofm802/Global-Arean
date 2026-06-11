@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USCUP 2026 SOCCER CAMP U11 ステップアップリーグ戦</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1a6b3c;--green-mid:#2d8f54;--green-light:#e8f5ee;
+  --pitch:#0f5c2e;--gold:#f0a500;--bronze:#c47a3a;
+  --bg:#f5f7f4;--text:#1a2014;--text-muted:#5a6b52;
+  --border:#d4dece;--card:#ffffff;--us-bg:#e8f0fb;--us-text:#1a5c2e;
+  --live-red:#e02020;--live-bg:#fff0f0;
+}
+body{font-family:"Noto Sans JP",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.header{background:var(--pitch);padding:0;position:relative;overflow:hidden}
+.header::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 40px),
+             repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 40px);
+  z-index:0}
+.header-inner{position:relative;width:100%;max-width:760px;margin:0 auto;display:flex;align-items:stretch;z-index:1}
+.header-text{padding:18px 20px 22px;flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+@media(max-width:500px){
+  .header-title{font-size:clamp(15px,4.5vw,22px);white-space:normal}
+  .header-text{padding:14px 14px 20px}
+  .match-team-logo{width:46px;height:46px;font-size:13px}
+  .match-team-name{font-size:12px}
+}
+.header-eyebrow{font-family:"Barlow Condensed",sans-serif;font-size:11px;letter-spacing:.15em;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:6px}
+.header-title{font-family:"Barlow Condensed",sans-serif;font-size:clamp(18px,5vw,28px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:10px}
+.header-title span{color:var(--gold)}
+.live-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(240,165,0,.18);border:1px solid rgba(240,165,0,.5);color:var(--gold);font-family:"Barlow Condensed",sans-serif;font-size:12px;letter-spacing:.1em;padding:3px 10px;border-radius:20px;align-self:flex-start}
+.live-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.main{max-width:760px;margin:0 auto;padding:18px 16px 40px}
+
+/* Page tabs */
+.page-tabs{display:flex;gap:8px;margin-bottom:14px}
+.page-tab{flex:1;text-align:center;font-family:"Barlow Condensed",sans-serif;font-size:14px;letter-spacing:.08em;font-weight:700;padding:10px 8px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text-muted);cursor:pointer;transition:all .15s}
+.page-tab.active{background:var(--pitch);color:#fff;border-color:var(--pitch)}
+.page{display:none}
+.page.active{display:block}
+
+.section-label{font-family:"Barlow Condensed",sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:"";flex:1;height:1px;background:var(--border)}
+
+.group-heading{font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:700;color:var(--green);margin:24px 0 8px;display:flex;align-items:center;gap:8px}
+.group-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:var(--pitch);color:#fff;font-size:14px;font-weight:700}
+
+.matches-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:560px){.matches-grid{grid-template-columns:1fr}}
+
+.match-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;transition:border-color .2s,background .2s}
+.match-card.is-live{border-color:var(--live-red)}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-family:"Barlow Condensed",sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em}
+.status-pre{color:var(--text-muted)}
+.status-soon{color:#b8860b}
+.status-soon::before{content:"";width:6px;height:6px;border-radius:50%;background:#b8860b;animation:pulse 1.2s ease-in-out infinite;display:inline-block;margin-right:2px}
+.status-finished{color:var(--text-muted)}
+.match-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.match-time{font-family:"Barlow Condensed",sans-serif;font-size:12px;letter-spacing:.05em;color:var(--text-muted)}
+.live-badge{display:inline-flex;align-items:center;gap:4px;font-family:"Barlow Condensed",sans-serif;font-size:12px;font-weight:700;color:var(--live-red);letter-spacing:.05em}
+.live-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--live-red);animation:pulse 1.2s ease-in-out infinite}
+
+.match-row{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.match-team-block{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0}
+.match-team-logo{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Barlow Condensed",sans-serif;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.match-team-name{font-size:11px;font-weight:500;color:var(--text);text-align:center;line-height:1.2;word-break:keep-all}
+.score-box{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.score-input{width:34px;height:34px;text-align:center;font-family:"Barlow Condensed",sans-serif;font-size:18px;font-weight:700;border:1.5px solid var(--border);border-radius:6px;background:#fafbf9;color:var(--text);transition:border-color .15s}
+.score-input:focus{outline:none;border-color:var(--green-mid)}
+.score-input:not(:placeholder-shown){background:var(--green-light);border-color:var(--green-mid)}
+.score-sep{font-family:"Barlow Condensed",sans-serif;font-size:16px;color:var(--text-muted)}
+
+.standings-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.standings-table{width:100%;border-collapse:collapse;font-size:13px}
+.standings-table thead{background:var(--pitch)}
+.standings-table thead th{font-family:"Barlow Condensed",sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.65);padding:9px 6px;text-align:center;font-weight:600}
+.standings-table thead th.col-team{text-align:left;padding-left:10px}
+.standings-table tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+.standings-table tbody tr:last-child{border-bottom:none}
+.standings-table tbody tr:hover{background:#f8faf7}
+.standings-table td{padding:9px 6px;text-align:center;color:var(--text)}
+.standings-table td.col-team{text-align:left;padding-left:10px}
+.rank-cell{width:30px}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-family:"Barlow Condensed",sans-serif;font-size:13px;font-weight:700}
+.r1{background:var(--gold);color:#3d2800}
+.r2{background:#c8d0d8;color:#2a3540}
+.r3{background:var(--bronze);color:#3d1a00}
+.r-other{background:#eaede7;color:var(--text-muted)}
+.team-cell-inner{display:flex;align-items:center;gap:8px}
+.team-logo-sm{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:"Barlow Condensed",sans-serif;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.team-name-cell{font-weight:500;font-size:13px}
+.pts-cell{font-family:"Barlow Condensed",sans-serif;font-size:17px;font-weight:700;color:var(--green)}
+.gd-pos{color:var(--green-mid);font-weight:500}
+.gd-neg{color:#c0392b;font-weight:500}
+
+.tb-notes{margin-top:10px}
+.tb-note{font-size:11px;color:var(--text-muted);background:#fffbf0;border-left:3px solid var(--gold);padding:6px 10px;border-radius:0 6px 6px 0;margin-bottom:6px}
+
+.reset-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;background:transparent;transition:background .1s}
+.reset-btn:hover{background:var(--green-light);border-color:var(--green-mid);color:var(--green)}
+
+.footer{text-align:center;font-size:11px;color:var(--text-muted);padding:24px 0 36px;border-top:1px solid var(--border);margin-top:28px}
+.footer-copy{font-size:10px;color:var(--text-muted);line-height:1.8;letter-spacing:.03em}
+@media(max-width:520px){
+  .standings-table .hide-sp{display:none}
+  .standings-table td,.standings-table th{padding:7px 3px}
+}
+
+.input-locked{pointer-events:none}
+.lock-overlay{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.lock-btn{font-family:"Barlow Condensed",sans-serif;font-size:12px;letter-spacing:.05em;border:1px solid var(--border);border-radius:6px;padding:5px 14px;cursor:pointer;background:transparent;color:var(--text-muted);transition:background .1s}
+.lock-btn:hover{background:var(--green-light);border-color:var(--green-mid);color:var(--green)}
+.lock-status{font-size:11px;color:var(--text-muted);font-family:"Barlow Condensed",sans-serif;letter-spacing:.05em}
+.lock-status.unlocked{color:var(--green-mid)}
+
+.ticker-wrap{background:#0f5c2e;border-radius:8px;overflow:hidden;display:flex;align-items:center;height:38px;margin-bottom:16px}
+.ticker-label{background:#f0a500;color:#3d2800;font-family:"Barlow Condensed",sans-serif;font-size:11px;font-weight:600;padding:0 12px;height:100%;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;letter-spacing:.08em}
+.ticker-track{flex:1;overflow:hidden;position:relative;height:100%}
+.ticker-inner{display:inline-flex;align-items:center;height:38px;white-space:nowrap;animation:none}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 18px;font-size:12px;font-weight:500;color:#fff;border-right:1px solid rgba(255,255,255,.15);height:100%;font-family:"Noto Sans JP",sans-serif}
+.ticker-badge{font-size:10px;padding:1px 7px;border-radius:4px;font-weight:500;font-family:"Barlow Condensed",sans-serif;letter-spacing:.05em}
+.tb-gold{background:#f0a500;color:#3d2800}
+.tb-silver{background:#c8d0d8;color:#2a3540}
+.tb-bronze{background:#c47a3a;color:#3d1a00}
+.tb-green{background:#2d8f54;color:#e8f5ee}
+.tb-red{background:#a32d2d;color:#fcebeb}
+.tb-warn{background:#e67e22;color:#fff}
+.tb-gray{background:rgba(255,255,255,.2);color:#fff}
+.tb-blue{background:#185fa5;color:#e6f1fb}
+
+/* Ticker input */
+.ticker-input-wrap{display:flex;gap:6px;margin-bottom:10px}
+.ticker-input-wrap input{flex:1;font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:"Noto Sans JP",sans-serif}
+.ticker-input-wrap button{font-family:"Barlow Condensed",sans-serif;font-size:12px;letter-spacing:.05em;border:1px solid var(--border);border-radius:6px;padding:5px 14px;cursor:pointer;background:var(--green);color:#fff}
+.ticker-list{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.ticker-list-item{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px}
+.ticker-list-item button{background:transparent;border:none;color:#c0392b;cursor:pointer;font-size:14px}
+
+.day2-note{font-size:11px;color:var(--text-muted);background:#fffbf0;border-left:3px solid var(--gold);padding:6px 10px;border-radius:0 6px 6px 0;margin:8px 0}
+
+.overall-table{width:100%;border-collapse:collapse;font-size:13px}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <div class="header-text">
+      <div class="header-eyebrow">2026/6/25-26 ｜ GLOBAL ARENA</div>
+      <div class="header-title">USCUP 2026 SOCCER CAMP U11<br><span>ステップアップリーグ戦</span></div>
+      <div class="live-pill">AS IT STANDS</div>
+    </div>
+  </div>
+</header>
+<main class="main">
+  <div class="ticker-wrap" id="ticker-wrap">
+    <div class="ticker-label">⚽ 速報</div>
+    <div class="ticker-track"><div class="ticker-inner" id="ticker-inner"></div></div>
+  </div>
+
+  <div class="page-tabs">
+    <div class="page-tab active" data-page="day1" onclick="switchPage('day1')">1日目（リーグ戦）</div>
+    <div class="page-tab" data-page="day2" onclick="switchPage('day2')">2日目（順位別パート）</div>
+  </div>
+
+  <div class="lock-overlay">
+    <span class="lock-status" id="lock-status">🔒 閲覧モード</span>
+    <button class="lock-btn" id="lock-btn" onclick="toggleLock()">スコア入力</button>
+  </div>
+
+  <!-- DAY 1 PAGE -->
+  <div class="page active" id="page-day1">
+    <div class="ticker-input-wrap">
+      <input type="text" id="ticker-input" placeholder="速報メッセージを入力（例：折尾、開始から猛攻！）" maxlength="60">
+      <button onclick="addTickerMessage()">追加</button>
+    </div>
+    <div class="ticker-list" id="ticker-list"></div>
+
+    <div id="day1-groups"></div>
+
+    <div style="margin-top:14px;display:flex;justify-content:flex-end">
+      <button class="reset-btn" onclick="resetAll()">&#10227; 全データリセット</button>
+    </div>
+  </div>
+
+  <!-- DAY 2 PAGE -->
+  <div class="page" id="page-day2">
+    <div class="day2-note" id="day2-status-note">1日目の全試合が終了すると、各グループの組み合わせが自動的に表示されます。</div>
+    <div id="day2-groups"></div>
+
+    <div class="section-label" style="margin-top:28px">総合順位（1〜12位）</div>
+    <div class="standings-wrap">
+      <table class="overall-table">
+        <thead>
+          <tr><th class="rank-cell"></th><th class="col-team">チーム</th><th>所属</th><th>勝点</th><th class="hide-sp">得失差</th></tr>
+        </thead>
+        <tbody id="overall-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-copy">
+      © 2026 Trent LLC<br>
+      Powered by <a href="https://spirit-sports-lp.vercel.app/" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:underline;text-underline-offset:2px">Spirit Sports &amp; Marketing Limited</a>
+    </div>
+  </div>
+</main>
+<script>
+const FIREBASE_URL = 'https://uscup2026-default-rtdb.asia-southeast1.firebasedatabase.app';
+const FB_PATH = '';
+const PASSWORD = 'hiro';
+let isUnlocked = false;
+
+const TEAM_COLORS = {
+  '折尾':'#1a4fa0','今川':'#2d8f54','箱崎':'#c0392b','FCCF':'#e67e22',
+  '東福岡':'#1a6b3c','大津':'#8e44ad','レジェンド':'#16a085','アマソレイア':'#d63384',
+  '大橋':'#34495e','龍南':'#b8860b','千代':'#7f8c8d','警固':'#a32d2d',
+};
+
+const DAY1_GROUPS = {
+  A: ['折尾','今川','箱崎','FCCF'],
+  B: ['東福岡','大津','レジェンド','アマソレイア'],
+  C: ['大橋','龍南','千代','警固'],
+};
+
+const DAY1_MATCHES = [
+  {time:'9:00', koH:9, koM:0, group:'A', home:'折尾', away:'今川', id:'a1'},
+  {time:'9:30', koH:9, koM:30, group:'B', home:'東福岡', away:'大津', id:'b1'},
+  {time:'10:00', koH:10, koM:0, group:'C', home:'大橋', away:'龍南', id:'c1'},
+  {time:'10:30', koH:10, koM:30, group:'A', home:'折尾', away:'箱崎', id:'a2'},
+  {time:'11:00', koH:11, koM:0, group:'B', home:'東福岡', away:'レジェンド', id:'b2'},
+  {time:'11:30', koH:11, koM:30, group:'C', home:'大橋', away:'千代', id:'c2'},
+  {time:'12:00', koH:12, koM:0, group:'A', home:'折尾', away:'FCCF', id:'a3'},
+  {time:'12:30', koH:12, koM:30, group:'B', home:'東福岡', away:'アマソレイア', id:'b3'},
+  {time:'13:00', koH:13, koM:0, group:'C', home:'大橋', away:'警固', id:'c3'},
+  {time:'13:30', koH:13, koM:30, group:'A', home:'今川', away:'箱崎', id:'a4'},
+  {time:'14:00', koH:14, koM:0, group:'B', home:'大津', away:'レジェンド', id:'b4'},
+  {time:'14:30', koH:14, koM:30, group:'C', home:'龍南', away:'千代', id:'c4'},
+  {time:'15:00', koH:15, koM:0, group:'A', home:'今川', away:'FCCF', id:'a5'},
+  {time:'15:30', koH:15, koM:30, group:'B', home:'大津', away:'アマソレイア', id:'b5'},
+  {time:'16:00', koH:16, koM:0, group:'C', home:'龍南', away:'警固', id:'c5'},
+  {time:'16:30', koH:16, koM:30, group:'A', home:'箱崎', away:'FCCF', id:'a6'},
+  {time:'17:00', koH:17, koM:0, group:'B', home:'レジェンド', away:'アマソレイア', id:'b6'},
+  {time:'17:30', koH:17, koM:30, group:'C', home:'千代', away:'警固', id:'c6'},
+];
+
+// Day2 templates: each pot (G1-G4) has 4 teams determined after Day1.
+// homeIdx/awayIdx refer to index (0-3) within that pot's team array,
+// where index = day1 rank within their original group (0=1st place, etc.)
+const DAY2_TEMPLATE = [
+  {time:'9:00', koH:9, koM:0, group:'G1', homeIdx:0, awayIdx:1, id:'g11'},
+  {time:'9:20', koH:9, koM:20, group:'G2', homeIdx:0, awayIdx:1, id:'g21'},
+  {time:'9:40', koH:9, koM:40, group:'G3', homeIdx:0, awayIdx:1, id:'g31'},
+  {time:'10:00', koH:10, koM:0, group:'G4', homeIdx:0, awayIdx:1, id:'g41'},
+  {time:'10:20', koH:10, koM:20, group:'G1', homeIdx:0, awayIdx:2, id:'g12'},
+  {time:'10:40', koH:10, koM:40, group:'G2', homeIdx:0, awayIdx:2, id:'g22'},
+  {time:'11:00', koH:11, koM:0, group:'G3', homeIdx:0, awayIdx:2, id:'g32'},
+  {time:'11:20', koH:11, koM:20, group:'G4', homeIdx:0, awayIdx:2, id:'g42'},
+  {time:'11:40', koH:11, koM:40, group:'G1', homeIdx:0, awayIdx:3, id:'g13'},
+  {time:'12:00', koH:12, koM:0, group:'G2', homeIdx:0, awayIdx:3, id:'g23'},
+  {time:'12:20', koH:12, koM:20, group:'G3', homeIdx:0, awayIdx:3, id:'g33'},
+  {time:'12:40', koH:12, koM:40, group:'G4', homeIdx:0, awayIdx:3, id:'g43'},
+  {time:'13:00', koH:13, koM:0, group:'G1', homeIdx:1, awayIdx:2, id:'g14'},
+  {time:'13:20', koH:13, koM:20, group:'G2', homeIdx:1, awayIdx:2, id:'g24'},
+  {time:'13:40', koH:13, koM:40, group:'G3', homeIdx:1, awayIdx:2, id:'g34'},
+  {time:'14:00', koH:14, koM:0, group:'G4', homeIdx:1, awayIdx:2, id:'g44'},
+  {time:'14:20', koH:14, koM:20, group:'G1', homeIdx:1, awayIdx:3, id:'g15'},
+  {time:'14:40', koH:14, koM:40, group:'G2', homeIdx:1, awayIdx:3, id:'g25'},
+  {time:'15:00', koH:15, koM:0, group:'G3', homeIdx:1, awayIdx:3, id:'g35'},
+  {time:'15:20', koH:15, koM:20, group:'G4', homeIdx:1, awayIdx:3, id:'g45'},
+  {time:'15:40', koH:15, koM:40, group:'G1', homeIdx:2, awayIdx:3, id:'g16'},
+  {time:'16:00', koH:16, koM:0, group:'G2', homeIdx:2, awayIdx:3, id:'g26'},
+  {time:'16:20', koH:16, koM:20, group:'G3', homeIdx:2, awayIdx:3, id:'g36'},
+  {time:'16:40', koH:16, koM:40, group:'G4', homeIdx:2, awayIdx:3, id:'g46'},
+];
+
+const DAY2_GROUP_LABELS = {G1:'1位グループ（総合1〜3位決定）', G2:'2位グループ（総合4〜6位決定）', G3:'3位グループ（総合7〜9位決定）', G4:'4位グループ（総合10〜12位決定）'};
+const DAY2_GROUP_RANK_OFFSET = {G1:0, G2:3, G3:6, G4:9};
+
+const MATCH_DATE = {year:2026, month:6, day:25};
+const MATCH_DATE_DAY2 = {year:2026, month:6, day:26};
+const LIVE_BEFORE=1, LIVE_AFTER=47;
+
+let currentPage='day1';
+let tickerMessages = [];
+
+function switchPage(page){
+  currentPage=page;
+  document.querySelectorAll('.page-tab').forEach(t=>t.classList.toggle('active', t.dataset.page===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+page));
+  if(page==='day2') renderDay2();
+}
+
+function getJST(){
+  return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));
+}
+
+function getMatchStatus(koH,koM,dateObj){
+  const jst=getJST();
+  const koMin=koH*60+koM;
+  const isMatchDay = jst.getFullYear()===dateObj.year&&jst.getMonth()+1===dateObj.month&&jst.getDate()===dateObj.day;
+  const isAfterMatchDay = jst.getFullYear()>dateObj.year||
+    (jst.getFullYear()===dateObj.year&&jst.getMonth()+1>dateObj.month)||
+    (jst.getFullYear()===dateObj.year&&jst.getMonth()+1===dateObj.month&&jst.getDate()>dateObj.day);
+  if(isAfterMatchDay) return 'finished';
+  if(isMatchDay){
+    const nowMin=jst.getHours()*60+jst.getMinutes();
+    if(nowMin >= koMin + LIVE_AFTER) return 'finished';
+    if(nowMin >= koMin - LIVE_BEFORE) return 'live';
+    if(nowMin >= koMin - 5) return 'soon';
+    return 'pre';
+  }
+  return 'pre';
+}
+
+function makeLogoEl(team, size){
+  const sizeMap={lg:{cls:'match-team-logo',px:40},sm:{cls:'team-logo-sm',px:26}};
+  const {cls,px}=sizeMap[size]||sizeMap.sm;
+  const div=document.createElement('div');
+  div.className=cls;
+  div.style.background=TEAM_COLORS[team]||'#888';
+  div.style.fontSize=Math.round(px*0.32)+'px';
+  div.textContent=team.length<=2?team:team.slice(0,2);
+  div.title=team;
+  return div;
+}
+
+// ── Score storage (in-memory + Firebase sync) ──────────────────────────────
+let SCORES = {}; // { matchId: {h:int, a:int} }
+
+function getScore(id){
+  return SCORES[id] || null;
+}
+
+function setScore(id, h, a){
+  if(h===''||a===''||h==null||a==null){ delete SCORES[id]; return; }
+  const hv=parseInt(h), av=parseInt(a);
+  if(isNaN(hv)||isNaN(av)||hv<0||av<0){ delete SCORES[id]; return; }
+  SCORES[id]={h:hv,a:av};
+}
+
+async function saveScores(){
+  try{
+    document.getElementById('sync-status')&&(document.getElementById('sync-status').textContent='⟳ 同期中...');
+    await fetch(FIREBASE_URL+FB_PATH+'/scores.json', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(SCORES)
+    });
+  }catch(e){console.error('Save failed',e);}
+}
+
+async function loadScores(){
+  try{
+    const res=await fetch(FIREBASE_URL+FB_PATH+'/scores.json');
+    const data=await res.json();
+    if(data) SCORES=data;
+  }catch(e){console.error('Load failed',e);}
+}
+
+async function saveTicker(){
+  try{
+    await fetch(FIREBASE_URL+FB_PATH+'/ticker.json', {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(tickerMessages)
+    });
+  }catch(e){console.error('Ticker save failed',e);}
+}
+
+async function loadTicker(){
+  try{
+    const res=await fetch(FIREBASE_URL+FB_PATH+'/ticker.json');
+    const data=await res.json();
+    if(Array.isArray(data)) tickerMessages=data;
+  }catch(e){console.error('Ticker load failed',e);}
+}
+
+function startPolling(){
+  setInterval(async ()=>{
+    await loadScores();
+    await loadTicker();
+    renderAll();
+  }, 15000);
+}
+
+// ── Standings calculation ───────────────────────────────────────────────────
+function buildH2H(matches){
+  const map={};
+  matches.forEach(m=>{
+    const s=getScore(m.id); if(!s) return;
+    const {home:h, away:a}=m;
+    for(const[t1,t2]of[[h,a],[a,h]]){if(!map[t1])map[t1]={};if(!map[t1][t2])map[t1][t2]={pts:0,gf:0,ga:0};}
+    map[h][a].gf+=s.h; map[h][a].ga+=s.a; map[a][h].gf+=s.a; map[a][h].ga+=s.h;
+    if(s.h>s.a){map[h][a].pts+=3;}else if(s.h<s.a){map[a][h].pts+=3;}else{map[h][a].pts+=1;map[a][h].pts+=1;}
+  });
+  return map;
+}
+
+function calcGroupStandings(teams, matches){
+  const teamObjs={};
+  teams.forEach(name=>teamObjs[name]={name,pts:0,played:0,w:0,d:0,l:0,gf:0,ga:0});
+  matches.forEach(m=>{
+    const s=getScore(m.id); if(!s) return;
+    const ht=teamObjs[m.home], at=teamObjs[m.away];
+    if(!ht||!at) return;
+    ht.gf+=s.h; ht.ga+=s.a; ht.played++;
+    at.gf+=s.a; at.ga+=s.h; at.played++;
+    if(s.h>s.a){ht.w++;ht.pts+=3;at.l++;}
+    else if(s.h<s.a){at.w++;at.pts+=3;ht.l++;}
+    else{ht.d++;ht.pts+=1;at.d++;at.pts+=1;}
+  });
+  const h2h=buildH2H(matches);
+  const arr=Object.values(teamObjs).map(t=>({...t,gd:t.gf-t.ga}));
+  arr.sort((a,b)=>b.pts-a.pts);
+  const groups=[]; let i=0;
+  while(i<arr.length){let j=i;while(j<arr.length&&arr[j].pts===arr[i].pts)j++;groups.push(arr.slice(i,j));i=j;}
+  const notes=[], sorted=[];
+  for(const grp of groups){
+    if(grp.length===1){sorted.push(grp[0]);continue;}
+    grp.sort((a,b)=>{
+      const ns=grp.map(x=>x.name);
+      const hp=t=>ns.reduce((s,n)=>n!==t.name?(h2h[t.name]?.[n]?.pts||0)+s:s,0);
+      if(hp(b)!==hp(a))return hp(b)-hp(a);
+      if(b.gd!==a.gd)return b.gd-a.gd;
+      if(b.gf!==a.gf)return b.gf-a.gf;
+      return 0;
+    });
+    const ns=grp.map(x=>x.name).join('・');
+    const nms=grp.map(x=>x.name);
+    const hpL=grp.map(t=>nms.reduce((s,n)=>n!==t.name?(h2h[t.name]?.[n]?.pts||0)+s:s,0));
+    if(new Set(hpL).size>1) notes.push(`⚠️ 【${ns}】同勝点 → 当該チーム間の対戦成績で決定`);
+    else if(new Set(grp.map(x=>x.gd)).size>1) notes.push(`⚠️ 【${ns}】同勝点・同当該成績 → 得失点差で決定`);
+    else if(new Set(grp.map(x=>x.gf)).size>1) notes.push(`⚠️ 【${ns}】→ 総得点数で決定`);
+    else notes.push(`⚠️ 【${ns}】全項目タイ → 抽選で決定`);
+    sorted.push(...grp);
+  }
+  return {sorted, notes};
+}
+
+function isGroupComplete(matches){
+  return matches.every(m=>getScore(m.id)!==null);
+}
+
+function isDay1Complete(){
+  return DAY1_MATCHES.every(m=>getScore(m.id)!==null);
+}
+
+// ── Rendering: Day 1 ─────────────────────────────────────────────────────────
+function renderMatchCard(m, dateObj, displayHome, displayAway){
+  const status=getMatchStatus(m.koH,m.koM,dateObj);
+  const card=document.createElement('div');
+  const statusClassMap={pre:'is-prematch',soon:'is-soon',live:'is-live',finished:'is-finished'};
+  card.className='match-card '+statusClassMap[status];
+  card.id='card-'+m.id;
+
+  const hdr=document.createElement('div'); hdr.className='match-header';
+  const tEl=document.createElement('span'); tEl.className='match-time'; tEl.textContent='KO '+m.time;
+  hdr.appendChild(tEl);
+
+  const badge=document.createElement('span');
+  if(status==='live'){badge.className='live-badge';badge.textContent='LIVE';}
+  else if(status==='soon'){badge.className='status-badge status-soon';badge.textContent='まもなくキックオフ';}
+  else if(status==='pre'){badge.className='status-badge status-pre';badge.textContent='試合前';}
+  else {badge.className='status-badge status-finished';badge.textContent='試合終了';}
+  hdr.appendChild(badge);
+  card.appendChild(hdr);
+
+  const row=document.createElement('div'); row.className='match-row';
+  const hBlk=document.createElement('div'); hBlk.className='match-team-block';
+  hBlk.appendChild(makeLogoEl(displayHome,'lg'));
+  const hn=document.createElement('div'); hn.className='match-team-name'; hn.textContent=displayHome; hBlk.appendChild(hn);
+
+  const sb=document.createElement('div'); sb.className='score-box';
+  const ih=document.createElement('input'); ih.className='score-input'; ih.type='number'; ih.min=0; ih.max=20; ih.id=m.id+'_h'; ih.placeholder='-';
+  const sep=document.createElement('span'); sep.className='score-sep'; sep.textContent=':';
+  const ia=document.createElement('input'); ia.className='score-input'; ia.type='number'; ia.min=0; ia.max=20; ia.id=m.id+'_a'; ia.placeholder='-';
+  const sc=getScore(m.id);
+  if(sc){ih.value=sc.h; ia.value=sc.a;}
+  sb.append(ih,sep,ia);
+
+  const aBlk=document.createElement('div'); aBlk.className='match-team-block';
+  aBlk.appendChild(makeLogoEl(displayAway,'lg'));
+  const an=document.createElement('div'); an.className='match-team-name'; an.textContent=displayAway; aBlk.appendChild(an);
+
+  row.append(hBlk,sb,aBlk);
+  card.appendChild(row);
+
+  [ih,ia].forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      setScore(m.id, ih.value, ia.value);
+      renderAll();
+    });
+    inp.addEventListener('change',()=>{
+      setScore(m.id, ih.value, ia.value);
+      saveScores();
+      renderAll();
+    });
+  });
+  return card;
+}
+
+function renderStandingsTable(sorted, notes, containerId, notesId){
+  const tbody=document.getElementById(containerId); tbody.innerHTML='';
+  sorted.forEach((r,i)=>{
+    const rank=i+1, rc=rank===1?'r1':rank===2?'r2':rank===3?'r3':'r-other';
+    const tr=document.createElement('tr');
+    const tdR=document.createElement('td'); tdR.className='rank-cell';
+    const rb=document.createElement('span'); rb.className='rank-badge '+rc; rb.textContent=rank; tdR.appendChild(rb);
+
+    const tdT=document.createElement('td'); tdT.className='col-team';
+    const inn=document.createElement('div'); inn.className='team-cell-inner';
+    inn.appendChild(makeLogoEl(r.name,'sm'));
+    const ns=document.createElement('span'); ns.className='team-name-cell'; ns.textContent=r.name;
+    inn.appendChild(ns);
+    tdT.appendChild(inn);
+
+    tr.append(tdR,tdT);
+    const vals=[r.pts,r.played,r.w,r.d,r.l,r.gf,r.ga];
+    vals.forEach((v,vi)=>{
+      const td=document.createElement('td');
+      if(vi===0) td.className='pts-cell';
+      if([1,5,6].includes(vi)) td.className=(td.className?td.className+' ':'')+'hide-sp';
+      td.textContent=v; tr.appendChild(td);
+    });
+    const gdTd=document.createElement('td');
+    const gd=r.gd; gdTd.className=gd>0?'gd-pos':gd<0?'gd-neg':'';
+    gdTd.textContent=(gd>=0?'+':'')+gd;
+    tr.appendChild(gdTd);
+    tbody.appendChild(tr);
+  });
+  if(notesId){
+    const ne=document.getElementById(notesId); ne.innerHTML='';
+    notes.forEach(n=>{const d=document.createElement('div');d.className='tb-note';d.textContent=n;ne.appendChild(d);});
+  }
+}
+
+function renderDay1(){
+  const container=document.getElementById('day1-groups');
+  container.innerHTML='';
+  ['A','B','C'].forEach(g=>{
+    const groupMatches=DAY1_MATCHES.filter(m=>m.group===g);
+    const heading=document.createElement('div'); heading.className='group-heading';
+    const badge=document.createElement('span'); badge.className='group-badge'; badge.textContent=g;
+    heading.appendChild(badge);
+    heading.appendChild(document.createTextNode(g+'グループ'));
+    container.appendChild(heading);
+
+    const grid=document.createElement('div'); grid.className='matches-grid';
+    groupMatches.forEach(m=>{
+      grid.appendChild(renderMatchCard(m, MATCH_DATE, m.home, m.away));
+    });
+    container.appendChild(grid);
+
+    const stLabel=document.createElement('div'); stLabel.className='section-label'; stLabel.style.marginTop='14px';
+    stLabel.textContent=g+'グループ リーグテーブル';
+    container.appendChild(stLabel);
+
+    const wrap=document.createElement('div'); wrap.className='standings-wrap';
+    const table=document.createElement('table'); table.className='standings-table';
+    table.innerHTML=`<thead><tr>
+      <th class="rank-cell"></th><th class="col-team">チーム</th><th>勝点</th>
+      <th class="hide-sp">試</th><th>勝</th><th>分</th><th>負</th>
+      <th class="hide-sp">得</th><th class="hide-sp">失</th><th>差</th>
+    </tr></thead><tbody id="standings-${g}"></tbody>`;
+    wrap.appendChild(table);
+    container.appendChild(wrap);
+
+    const notesDiv=document.createElement('div'); notesDiv.id='notes-'+g; notesDiv.className='tb-notes';
+    container.appendChild(notesDiv);
+
+    const {sorted, notes}=calcGroupStandings(DAY1_GROUPS[g], groupMatches);
+    renderStandingsTable(sorted, notes, 'standings-'+g, 'notes-'+g);
+  });
+}
+
+// ── Day 2 logic ──────────────────────────────────────────────────────────────
+// Returns {G1:[team,team,team,team], G2:[...], G3:[...], G4:[...]}
+// Index within each pot = day1 rank-1 of source group, in order A,B,C
+function getDay2Pots(){
+  const pots={G1:[],G2:[],G3:[],G4:[]};
+  ['A','B','C'].forEach(g=>{
+    const groupMatches=DAY1_MATCHES.filter(m=>m.group===g);
+    const {sorted}=calcGroupStandings(DAY1_GROUPS[g], groupMatches);
+    sorted.forEach((team,idx)=>{
+      const potKey='G'+(idx+1);
+      pots[potKey].push(team.name);
+    });
+  });
+  return pots;
+}
+
+function getDay2Matches(pots){
+  return DAY2_TEMPLATE.map(m=>{
+    const teams=pots[m.group]||[];
+    return {
+      ...m,
+      home: teams[m.homeIdx] || null,
+      away: teams[m.awayIdx] || null,
+    };
+  });
+}
+
+// Placeholder team labels shown before Day1 standings are confirmed.
+// Pot index = day1 rank-1 (0=1st,1=2nd,2=3rd,3=4th) of source group A/B/C, in that order.
+const PLACEHOLDER_LABELS = ['Aグループ','Bグループ','Cグループ'];
+
+function getPlaceholderTeams(potRankIdx){
+  // potRankIdx: 0 for G1 (1位グループ), 1 for G2, etc.
+  const ordinal=['1位','2位','3位','4位'][potRankIdx];
+  return PLACEHOLDER_LABELS.map(g=>g+ordinal);
+}
+
+function renderDay2(){
+  const container=document.getElementById('day2-groups');
+  const note=document.getElementById('day2-status-note');
+  container.innerHTML='';
+
+  const day1Done=isDay1Complete();
+  let pots, day2Matches;
+  if(day1Done){
+    note.style.display='none';
+    pots=getDay2Pots();
+    day2Matches=getDay2Matches(pots);
+  } else {
+    note.style.display='block';
+    note.textContent='現在は1日目進行中です。組み合わせは仮表示（◯グループ◯位）です。1日目の全試合が終了すると、実際のチーム名に自動的に切り替わります。';
+    pots={
+      G1:getPlaceholderTeams(0),
+      G2:getPlaceholderTeams(1),
+      G3:getPlaceholderTeams(2),
+      G4:getPlaceholderTeams(3),
+    };
+    // Build placeholder match list with same structure but no scores possible
+    day2Matches=DAY2_TEMPLATE.map(m=>({
+      ...m,
+      home: pots[m.group][m.homeIdx],
+      away: pots[m.group][m.awayIdx],
+    }));
+  }
+
+  const groupResults={};
+
+  ['G1','G2','G3','G4'].forEach(g=>{
+    const teams=pots[g];
+    const groupMatches=day2Matches.filter(m=>m.group===g);
+
+    const heading=document.createElement('div'); heading.className='group-heading';
+    const badge=document.createElement('span'); badge.className='group-badge'; badge.textContent=g.replace('G','');
+    heading.appendChild(badge);
+    heading.appendChild(document.createTextNode(DAY2_GROUP_LABELS[g]));
+    container.appendChild(heading);
+
+    const teamsLine=document.createElement('div');
+    teamsLine.style.cssText='font-size:12px;color:var(--text-muted);margin-bottom:8px';
+    teamsLine.textContent='出場チーム: '+teams.join(' / ');
+    container.appendChild(teamsLine);
+
+    const grid=document.createElement('div'); grid.className='matches-grid';
+    groupMatches.forEach(m=>{
+      const card=renderMatchCard(m, MATCH_DATE_DAY2, m.home, m.away);
+      if(!day1Done){
+        // disable inputs for placeholder matches
+        card.querySelectorAll('input').forEach(inp=>{inp.disabled=true;});
+      }
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+
+    const stLabel=document.createElement('div'); stLabel.className='section-label'; stLabel.style.marginTop='14px';
+    stLabel.textContent=DAY2_GROUP_LABELS[g]+' リーグテーブル';
+    container.appendChild(stLabel);
+
+    const wrap=document.createElement('div'); wrap.className='standings-wrap';
+    const table=document.createElement('table'); table.className='standings-table';
+    table.innerHTML=`<thead><tr>
+      <th class="rank-cell"></th><th class="col-team">チーム</th><th>勝点</th>
+      <th class="hide-sp">試</th><th>勝</th><th>分</th><th>負</th>
+      <th class="hide-sp">得</th><th class="hide-sp">失</th><th>差</th>
+    </tr></thead><tbody id="standings-${g}"></tbody>`;
+    wrap.appendChild(table);
+    container.appendChild(wrap);
+
+    const notesDiv=document.createElement('div'); notesDiv.id='notes-'+g; notesDiv.className='tb-notes';
+    container.appendChild(notesDiv);
+
+    const {sorted, notes}=calcGroupStandings(teams, day1Done?groupMatches:[]);
+    renderStandingsTable(sorted, notes, 'standings-'+g, 'notes-'+g);
+    groupResults[g]=sorted;
+  });
+
+  // Overall ranking 1-12
+  const overallBody=document.getElementById('overall-body');
+  overallBody.innerHTML='';
+  ['G1','G2','G3','G4'].forEach(g=>{
+    const offset=DAY2_GROUP_RANK_OFFSET[g];
+    groupResults[g].forEach((r,idx)=>{
+      const overallRank=offset+idx+1;
+      const rc=overallRank===1?'r1':overallRank===2?'r2':overallRank===3?'r3':'r-other';
+      const tr=document.createElement('tr');
+      const tdR=document.createElement('td'); tdR.className='rank-cell';
+      const rb=document.createElement('span'); rb.className='rank-badge '+rc; rb.textContent=overallRank; tdR.appendChild(rb);
+      const tdT=document.createElement('td'); tdT.className='col-team';
+      const inn=document.createElement('div'); inn.className='team-cell-inner';
+      inn.appendChild(makeLogoEl(r.name,'sm'));
+      const ns=document.createElement('span'); ns.className='team-name-cell'; ns.textContent=r.name;
+      inn.appendChild(ns);
+      tdT.appendChild(inn);
+      tr.append(tdR,tdT);
+      const tdG=document.createElement('td'); tdG.textContent=DAY2_GROUP_LABELS[g].slice(0,5);
+      tr.appendChild(tdG);
+      const tdP=document.createElement('td'); tdP.className='pts-cell'; tdP.textContent=r.pts;
+      tr.appendChild(tdP);
+      const tdGD=document.createElement('td'); tdGD.className=(r.gd>0?'gd-pos':r.gd<0?'gd-neg':'')+' hide-sp';
+      tdGD.textContent=(r.gd>=0?'+':'')+r.gd;
+      tr.appendChild(tdGD);
+      overallBody.appendChild(tr);
+    });
+  });
+}
+
+// ── Ticker ───────────────────────────────────────────────────────────────────
+function renderTicker(){
+  const inner=document.getElementById('ticker-inner');
+  if(!inner) return;
+  if(tickerMessages.length===0){
+    inner.innerHTML='<span class="ticker-item">📊 USCUP 2026 ステップアップリーグ戦 開幕！ <span class="ticker-badge tb-blue">注目</span></span>';
+    return;
+  }
+  const html=tickerMessages.map(m=>
+    `<span class="ticker-item">📣 ${escapeHtml(m)} <span class="ticker-badge tb-gold">速報</span></span>`
+  ).join('');
+  inner.innerHTML=html+html;
+  if(window._tickerRAF) cancelAnimationFrame(window._tickerRAF);
+  window._tickerPos=0;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const half=inner.scrollWidth/2;
+    if(half<=0) return;
+    function tick(){
+      window._tickerPos-=0.6;
+      if(window._tickerPos<=-half) window._tickerPos=0;
+      inner.style.transform=`translateX(${window._tickerPos}px)`;
+      window._tickerRAF=requestAnimationFrame(tick);
+    }
+    window._tickerRAF=requestAnimationFrame(tick);
+  }));
+}
+
+function escapeHtml(s){
+  const div=document.createElement('div');
+  div.textContent=s;
+  return div.innerHTML;
+}
+
+function renderTickerList(){
+  const list=document.getElementById('ticker-list');
+  list.innerHTML='';
+  tickerMessages.forEach((m,i)=>{
+    const item=document.createElement('div'); item.className='ticker-list-item';
+    const span=document.createElement('span'); span.textContent=m;
+    item.appendChild(span);
+    const btn=document.createElement('button'); btn.textContent='✕';
+    btn.onclick=()=>{
+      if(!isUnlocked){ alert('スコア入力モードでのみ削除できます'); return; }
+      tickerMessages.splice(i,1);
+      saveTicker();
+      renderAll();
+    };
+    item.appendChild(btn);
+    list.appendChild(item);
+  });
+}
+
+function addTickerMessage(){
+  if(!isUnlocked){ alert('スコア入力モードでのみ追加できます'); return; }
+  const input=document.getElementById('ticker-input');
+  const val=input.value.trim();
+  if(!val) return;
+  tickerMessages.unshift(val);
+  if(tickerMessages.length>10) tickerMessages.pop();
+  input.value='';
+  saveTicker();
+  renderAll();
+}
+
+// ── Lock / unlock ───────────────────────────────────────────────────────────
+function toggleLock(){
+  if(isUnlocked){
+    isUnlocked=false;
+    document.body.classList.add('input-locked-body');
+    document.querySelectorAll('.matches-grid').forEach(g=>g.classList.add('input-locked'));
+    document.getElementById('ticker-input').disabled=true;
+    document.querySelector('.ticker-input-wrap button').disabled=true;
+    document.getElementById('lock-status').textContent='🔒 閲覧モード';
+    document.getElementById('lock-status').className='lock-status';
+    document.getElementById('lock-btn').textContent='スコア入力';
+  } else {
+    const pw=prompt('パスワードを入力してください：');
+    if(pw && pw.trim().toLowerCase()===PASSWORD){
+      isUnlocked=true;
+      document.querySelectorAll('.matches-grid').forEach(g=>g.classList.remove('input-locked'));
+      document.getElementById('ticker-input').disabled=false;
+      document.querySelector('.ticker-input-wrap button').disabled=false;
+      document.getElementById('lock-status').textContent='🔓 入力モード（Hiro）';
+      document.getElementById('lock-status').className='lock-status unlocked';
+      document.getElementById('lock-btn').textContent='ロック';
+    } else if(pw!==null){
+      alert('パスワードが違います');
+    }
+  }
+}
+
+function resetAll(){
+  const pw=prompt('パスワードを入力してください：');
+  if(!pw||pw.trim().toLowerCase()!==PASSWORD){
+    if(pw!==null) alert('パスワードが違います');
+    return;
+  }
+  if(!confirm('全てのスコアと速報をリセットしますか？')) return;
+  SCORES={};
+  tickerMessages=[];
+  renderAll();
+  fetch(FIREBASE_URL+FB_PATH+'/scores.json',{method:'DELETE'}).catch(e=>console.error(e));
+  fetch(FIREBASE_URL+FB_PATH+'/ticker.json',{method:'DELETE'}).catch(e=>console.error(e));
+}
+
+// ── Live status refresh ──────────────────────────────────────────────────────
+function refreshLive(){
+  let changed=false;
+  const statusClassMap={pre:'is-prematch',soon:'is-soon',live:'is-live',finished:'is-finished'};
+  document.querySelectorAll('.match-card').forEach(card=>{
+    const id=card.id.replace('card-','');
+    let m=DAY1_MATCHES.find(x=>x.id===id);
+    let dateObj=MATCH_DATE;
+    if(!m){
+      m=DAY2_TEMPLATE.find(x=>x.id===id);
+      dateObj=MATCH_DATE_DAY2;
+    }
+    if(!m) return;
+    const status=getMatchStatus(m.koH,m.koM,dateObj);
+    if(!card.classList.contains(statusClassMap[status])) changed=true;
+  });
+  if(changed) renderAll();
+}
+
+// ── Master render ────────────────────────────────────────────────────────────
+function renderAll(){
+  renderDay1();
+  if(currentPage==='day2') renderDay2();
+  renderTicker();
+  renderTickerList();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init(){
+  document.querySelectorAll('.matches-grid').forEach(g=>g.classList.add('input-locked'));
+  document.getElementById('ticker-input').disabled=true;
+  await loadScores();
+  await loadTicker();
+  renderAll();
+  startPolling();
+  setInterval(refreshLive, 30000);
+}
+init();
+
+</script>
+</body>
+</html>
